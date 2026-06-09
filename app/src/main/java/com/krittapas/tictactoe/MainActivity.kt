@@ -15,6 +15,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.krittapas.tictactoe.presentation.GameScreen
 import com.krittapas.tictactoe.presentation.GameViewModel
+import com.krittapas.tictactoe.presentation.HistoryScreen
+import com.krittapas.tictactoe.presentation.ReplayScreen
 import com.krittapas.tictactoe.presentation.SetupScreen
 import com.krittapas.tictactoe.ui.theme.TicTacToeTheme
 import androidx.compose.material3.Surface as Surface1
@@ -32,18 +34,28 @@ class MainActivity : ComponentActivity() {
                             .padding(innerPadding),
                         color = MaterialTheme.colorScheme.background,
                     ) {
+
                         val vm: GameViewModel = viewModel()
-                        val state = vm.uiState
-                        if (state == null) {
-                            SetupScreen(onStart = vm::startGame)
-                        } else {
-                            GameScreen(
-                                state = state,
-                                isThinking = vm.isThinking,
-                                onCellClick = vm::onCellClick,
-                                onPlayAgain = vm::playAgain,
-                                onBack = vm::backToSetup,
-                            )
+                        when (vm.screen) {
+                            GameViewModel.Screen.SETUP ->
+                                SetupScreen(onStart = vm::startGame, onOpenHistory = vm::openHistory)
+
+                            GameViewModel.Screen.GAME -> vm.uiState?.let { state ->
+                                GameScreen(
+                                    state = state,
+                                    isThinking = vm.isThinking,
+                                    onCellClick = vm::onCellClick,
+                                    onPlayAgain = vm::playAgain,
+                                    onBack = vm::backToSetup,
+                                )
+                            }
+
+                            GameViewModel.Screen.HISTORY ->
+                                HistoryScreen(games = vm.history, onReplay = vm::startReplay, onBack = vm::backToSetup)
+
+                            GameViewModel.Screen.REPLAY -> vm.replayState?.let { rs ->
+                                ReplayScreen(state = rs, onNext = vm::replayNext, onPrev = vm::replayPrev, onBack = vm::openHistory)
+                            }
                         }
                     }
                 }

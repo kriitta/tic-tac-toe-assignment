@@ -1,36 +1,51 @@
 package com.krittapas.tictactoe.presentation
 
+import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.krittapas.tictactoe.data.AppDatabase
+import com.krittapas.tictactoe.data.GameRepository
+import com.krittapas.tictactoe.data.SavedGame
 import com.krittapas.tictactoe.domain.ai.AiPlayer
-import com.krittapas.tictactoe.domain.game.GameMode
-import com.krittapas.tictactoe.domain.game.GameStatus
-import com.krittapas.tictactoe.domain.game.Player
-import com.krittapas.tictactoe.domain.game.TicTacToeGame
+import com.krittapas.tictactoe.domain.game.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class GameViewModel : ViewModel() {
+class GameViewModel(app: Application) : AndroidViewModel(app) {
 
+    enum class Screen { SETUP, GAME, HISTORY, REPLAY }
+
+    private val repository = GameRepository(AppDatabase.getInstance(app).gameDao())
+
+    var screen by mutableStateOf(Screen.SETUP); private set
+
+    // ----- เล่นเกม -----
     private var game: TicTacToeGame? = null
-    private var opponent: Opponent = Opponent.HUMAN
+    private var opponent = Opponent.HUMAN
     private val ai = AiPlayer()
-    private val aiPlayer = Player.O   // บอทเล่นเป็น O, มนุษย์เป็น X (เดินก่อน)
+    private val aiPlayer = Player.O
+    private val moveHistory = mutableListOf<Cell>()
+    private var savedThisGame = false
 
-    var uiState by mutableStateOf<GameUiState?>(null)
-        private set
-    var isThinking by mutableStateOf(false)
-        private set
+    var uiState by mutableStateOf<GameUiState?>(null); private set
+    var isThinking by mutableStateOf(false); private set
+
+    // ----- ประวัติ + replay -----
+    var history by mutableStateOf<List<SavedGame>>(emptyList()); private set
+    var replayState by mutableStateOf<ReplayState?>(null); private set
 
     fun startGame(boardSize: Int, mode: GameMode, opponent: Opponent) {
         this.opponent = opponent
         val winLength = if (boardSize <= 4) 3 else 5
         game = TicTacToeGame(boardSize = boardSize, winLength = winLength, mode = mode)
+        moveHistory.clear()
+        savedThisGame = false
         isThinking = false
+        screen = Screen.GAME
         refresh()
     }
 
@@ -38,22 +53,42 @@ class GameViewModel : ViewModel() {
         if (isThinking) return
         val g = game ?: return
         if (g.makeMove(row, col)) {
+            moveHistory.add(Cell(row, col))
             refresh()
-            maybeTriggerAi()
+            if (g.status != GameStatus.InProgress) saveResult() else maybeTriggerAi()
         }
     }
 
     fun playAgain() {
         val g = game ?: return
-        game = TicTacToeGame(g.boardSize, g.winLength, g.mode)
-        isThinking = false
-        refresh()
+        startGame(g.boardSize, g.mode, opponent)
     }
 
     fun backToSetup() {
-        game = null
-        uiState = null
-        isThinking = false
+        game = null; uiState = null; isThinking = false; replayState = null
+        screen = Screen.SETUP
+    }
+
+    fun openHistory() {
+        viewModelScope.launch {
+            history = repository.getAll()
+            screen = Screen.HISTORY
+        }
+    }
+
+    fun startReplay(saved: SavedGame) {
+        replayState = buildReplay(saved, 0)
+        screen = Screen.REPLAY
+    }
+
+    fun replayNext() {
+        val rs = replayState ?: return
+        if (rs.step < rs.game.moves.size) replayState = buildReplay(rs.game, rs.step + 1)
+    }
+
+    fun replayPrev() {
+        val rs = replayState ?: return
+        if (rs.step > 0) replayState = buildReplay(rs.game, rs.step - 1)
     }
 
     private fun maybeTriggerAi() {
@@ -63,22 +98,55 @@ class GameViewModel : ViewModel() {
         isThinking = true
         viewModelScope.launch {
             val move = withContext(Dispatchers.Default) { ai.chooseMove(g) }
-            move?.let { g.makeMove(it.row, it.col) }
+            move?.let { g.makeMove(it.row, it.col); moveHistory.add(it) }
             isThinking = false
             refresh()
+            if (g.status != GameStatus.InProgress) saveResult()
         }
+    }
+
+    private fun saveResult() {
+        if (savedThisGame) return
+        val g = game ?: return
+        val result = when (val s = g.status) {
+            is GameStatus.Won -> s.winner.name
+            GameStatus.Draw -> "DRAW"
+            GameStatus.InProgress -> return
+        }
+        savedThisGame = true
+        val moves = moveHistory.toList()
+        viewModelScope.launch {
+            repository.save(g.boardSize, g.winLength, g.mode, opponent.name, result, moves)
+        }
+    }
+
+    /** สร้างสถานะกระดานของ replay โดยเล่น moves ซ้ำ step ตาแรกผ่าน engine จริง */
+    private fun buildReplay(saved: SavedGame, step: Int): ReplayState {
+        val g = TicTacToeGame(saved.boardSize, saved.winLength, saved.mode)
+        for (i in 0 until step) g.makeMove(saved.moves[i].row, saved.moves[i].col)
+        val board = List(g.boardSize) { r -> List(g.boardSize) { c -> g.cellAt(r, c) } }
+        val statusText = when (val s = g.status) {
+            is GameStatus.Won -> "ผู้ชนะ: ${s.winner}"
+            GameStatus.Draw -> "เสมอ!"
+            GameStatus.InProgress -> "ตา $step / ${saved.moves.size}"
+        }
+        return ReplayState(saved, step, board, statusText)
     }
 
     private fun refresh() {
         val g = game ?: return
         val board = List(g.boardSize) { r -> List(g.boardSize) { c -> g.cellAt(r, c) } }
         uiState = GameUiState(
-            boardSize = g.boardSize,
-            mode = g.mode,
-            board = board,
-            currentPlayer = g.currentPlayer,
-            status = g.status,
+            boardSize = g.boardSize, mode = g.mode, board = board,
+            currentPlayer = g.currentPlayer, status = g.status,
             cellToRemove = g.cellToBeRemovedFor(g.currentPlayer),
         )
     }
 }
+
+data class ReplayState(
+    val game: SavedGame,
+    val step: Int,
+    val board: List<List<Player?>>,
+    val statusText: String,
+)

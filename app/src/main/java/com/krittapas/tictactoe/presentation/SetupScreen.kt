@@ -12,7 +12,10 @@ import androidx.compose.ui.unit.dp
 import com.krittapas.tictactoe.domain.game.GameMode
 
 @Composable
-fun SetupScreen(onStart: (Int, GameMode, Opponent) -> Unit) {
+fun SetupScreen(
+    onStart: (Int, GameMode, Opponent) -> Unit,
+    onOpenHistory: () -> Unit,
+) {
     var size by remember { mutableStateOf(3) }
     var mode by remember { mutableStateOf(GameMode.STANDARD) }
     var opponent by remember { mutableStateOf(Opponent.HUMAN) }
@@ -66,6 +69,8 @@ fun SetupScreen(onStart: (Int, GameMode, Opponent) -> Unit) {
         Button(onClick = { onStart(size, mode, opponent) }, modifier = Modifier.fillMaxWidth()) {
             Text("เริ่มเกม")
         }
+        Spacer(Modifier.height(12.dp))
+        TextButton(onClick = onOpenHistory) { Text("ดูประวัติการเล่น") }
     }
 }
 
