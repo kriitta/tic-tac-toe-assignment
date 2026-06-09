@@ -74,6 +74,19 @@ class TicTacToeGame(
         }
         return true
     }
+    /** สร้างสำเนาเกมไว้ให้ AI ทดลองเดินโดยไม่กระทบเกมจริง */
+    fun copy(): TicTacToeGame {
+        val clone = TicTacToeGame(boardSize, winLength, mode, maxMarksPerPlayer)
+        for (r in 0 until boardSize)
+            for (c in 0 until boardSize)
+                clone.board[r][c] = board[r][c]
+        clone.marks.getValue(Player.X).addAll(marks.getValue(Player.X))
+        clone.marks.getValue(Player.O).addAll(marks.getValue(Player.O))
+        clone.occupied = occupied
+        clone.currentPlayer = currentPlayer
+        clone.status = status
+        return clone
+    }
 
     private fun findWinningLine(row: Int, col: Int, player: Player): List<Cell>? {
         val directions = listOf(0 to 1, 1 to 0, 1 to 1, 1 to -1)

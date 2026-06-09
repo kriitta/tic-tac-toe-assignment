@@ -39,6 +39,7 @@ class MainActivity : ComponentActivity() {
                         } else {
                             GameScreen(
                                 state = state,
+                                isThinking = vm.isThinking,
                                 onCellClick = vm::onCellClick,
                                 onPlayAgain = vm::playAgain,
                                 onBack = vm::backToSetup,

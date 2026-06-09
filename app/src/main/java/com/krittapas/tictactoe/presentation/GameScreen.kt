@@ -18,6 +18,7 @@ import com.krittapas.tictactoe.domain.game.Player
 @Composable
 fun GameScreen(
     state: GameUiState,
+    isThinking: Boolean,
     onCellClick: (Int, Int) -> Unit,
     onPlayAgain: () -> Unit,
     onBack: () -> Unit,
@@ -35,6 +36,7 @@ fun GameScreen(
             GameStatus.InProgress -> "ตาของ: ${state.currentPlayer}"
         }
         Text(statusText, style = MaterialTheme.typography.headlineSmall)
+        if (isThinking) Text("บอทกำลังคิด...", style = MaterialTheme.typography.bodyMedium)
         Spacer(Modifier.height(16.dp))
 
         // กระดาน N×N
@@ -46,7 +48,7 @@ fun GameScreen(
                             player = state.board[r][c],
                             isWinning = Cell(r, c) in winningCells,
                             fade = Cell(r, c) == state.cellToRemove,
-                            enabled = !gameOver && state.board[r][c] == null,
+                            enabled = !gameOver && !isThinking && state.board[r][c] == null,
                             onClick = { onCellClick(r, c) },
                             modifier = Modifier.weight(1f).aspectRatio(1f).padding(2.dp),
                         )

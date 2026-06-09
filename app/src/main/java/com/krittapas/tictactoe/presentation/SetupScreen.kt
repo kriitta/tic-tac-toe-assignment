@@ -12,9 +12,10 @@ import androidx.compose.ui.unit.dp
 import com.krittapas.tictactoe.domain.game.GameMode
 
 @Composable
-fun SetupScreen(onStart: (Int, GameMode) -> Unit) {
+fun SetupScreen(onStart: (Int, GameMode, Opponent) -> Unit) {
     var size by remember { mutableStateOf(3) }
     var mode by remember { mutableStateOf(GameMode.STANDARD) }
+    var opponent by remember { mutableStateOf(Opponent.HUMAN) }
     val sizes = listOf(3, 5, 10, 15)
 
     Column(
@@ -47,9 +48,22 @@ fun SetupScreen(onStart: (Int, GameMode) -> Unit) {
         Spacer(Modifier.height(8.dp))
         ModeCard("Infinite", "วางได้คนละ $size ตัว ตัวถัดไปแทนตัวเก่าสุด ไม่มีเสมอ",
             mode == GameMode.INFINITE) { mode = GameMode.INFINITE }
+        Spacer(Modifier.height(24.dp))
+        Text("คู่ต่อสู้", style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(8.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (opponent == Opponent.HUMAN)
+                Button(onClick = { opponent = Opponent.HUMAN }) { Text("เล่น 2 คน") }
+            else
+                OutlinedButton(onClick = { opponent = Opponent.HUMAN }) { Text("เล่น 2 คน") }
+            if (opponent == Opponent.AI)
+                Button(onClick = { opponent = Opponent.AI }) { Text("เล่นกับบอท") }
+            else
+                OutlinedButton(onClick = { opponent = Opponent.AI }) { Text("เล่นกับบอท") }
+        }
 
         Spacer(Modifier.height(32.dp))
-        Button(onClick = { onStart(size, mode) }, modifier = Modifier.fillMaxWidth()) {
+        Button(onClick = { onStart(size, mode, opponent) }, modifier = Modifier.fillMaxWidth()) {
             Text("เริ่มเกม")
         }
     }
