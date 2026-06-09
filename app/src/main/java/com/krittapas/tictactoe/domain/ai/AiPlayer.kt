@@ -5,30 +5,31 @@ import com.krittapas.tictactoe.domain.game.*
 class AiPlayer {
 
     /** เลือกช่องที่จะเดินให้ผู้เล่นที่ถึงตา (game.currentPlayer) */
-    fun chooseMove(game: TicTacToeGame): Cell? {
-        val me = game.currentPlayer
+    fun chooseMove(game: TicTacToeGame, difficulty: Difficulty): Cell? {
         val all = game.availableMoves()
         if (all.isEmpty()) return null
+        val candidates = candidateMoves(game)
 
-        // กระดานว่าง → เล่นกลาง
+        // Easy: ชนะทันทีถ้าทำได้ ไม่งั้นสุ่ม (อ่อน เอาชนะง่าย ไม่บล็อก)
+        if (difficulty == Difficulty.EASY) {
+            findImmediateWin(game, candidates)?.let { return it }
+            return candidates.random()
+        }
+
+        // Normal / Hard
         if (all.size == game.boardSize * game.boardSize) {
             val mid = game.boardSize / 2
             return Cell(mid, mid)
         }
-
-        val candidates = candidateMoves(game)
-
-        // ชนะได้ทันที → เอาเลย
         findImmediateWin(game, candidates)?.let { return it }
 
-        // ไม่งั้น Minimax + Alpha-Beta (การบล็อกคู่ต่อสู้ minimax จะเห็นเองที่ depth 2)
-        val depth = searchDepth(game.boardSize)
+        val me = game.currentPlayer
+        val depth = searchDepth(game.boardSize, difficulty)
         var best: Cell? = null
         var bestScore = Int.MIN_VALUE
         var alpha = Int.MIN_VALUE
         for (m in candidates) {
-            val next = game.copy()
-            next.makeMove(m.row, m.col)
+            val next = game.copy(); next.makeMove(m.row, m.col)
             val score = minimax(next, depth - 1, alpha, Int.MAX_VALUE, me, maximizing = false)
             if (score > bestScore) { bestScore = score; best = m }
             alpha = maxOf(alpha, score)
@@ -100,11 +101,14 @@ class AiPlayer {
         return false
     }
 
-    private fun searchDepth(boardSize: Int): Int = when {
-        boardSize <= 3 -> 8
-        boardSize <= 5 -> 4
-        boardSize <= 10 -> 3
-        else -> 2
+    private fun searchDepth(boardSize: Int, difficulty: Difficulty): Int = when (difficulty) {
+        Difficulty.HARD -> when {
+            boardSize <= 3 -> 9   // 3×3 เล่นเกือบสมบูรณ์
+            boardSize <= 5 -> 5
+            else -> 3
+        }
+        Difficulty.NORMAL -> 2    // ตื้น: บล็อก+ชนะได้ แต่ไม่วางแผนลึก เอาชนะได้
+        Difficulty.EASY -> 1      // ไม่ถูกเรียกจริง เพราะ Easy สุ่ม
     }
 
     /** ให้คะแนนกระดาน: ไล่หน้าต่างยาว winLength ทุกทิศ ฝ่ายไหนมีหมากในหน้าต่างมากกว่าได้แต้มมากกว่า */

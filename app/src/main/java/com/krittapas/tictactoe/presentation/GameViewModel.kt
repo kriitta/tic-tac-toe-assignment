@@ -14,6 +14,7 @@ import com.krittapas.tictactoe.domain.game.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.krittapas.tictactoe.domain.ai.Difficulty
 
 class GameViewModel(app: Application) : AndroidViewModel(app) {
 
@@ -26,6 +27,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     // ----- เล่นเกม -----
     private var game: TicTacToeGame? = null
     private var opponent = Opponent.HUMAN
+    private var difficulty = Difficulty.NORMAL
     private val ai = AiPlayer()
     private val aiPlayer = Player.O
     private val moveHistory = mutableListOf<Cell>()
@@ -38,9 +40,14 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     var history by mutableStateOf<List<SavedGame>>(emptyList()); private set
     var replayState by mutableStateOf<ReplayState?>(null); private set
 
-    fun startGame(boardSize: Int, mode: GameMode, opponent: Opponent) {
+    fun startGame(boardSize: Int, mode: GameMode, opponent: Opponent, difficulty: Difficulty) {
         this.opponent = opponent
-        val winLength = if (boardSize <= 4) 3 else 5
+        this.difficulty = difficulty
+        val winLength = when {
+            boardSize <= 4 -> 3
+            boardSize <= 6 -> 4
+            else -> 5
+        }
         game = TicTacToeGame(boardSize = boardSize, winLength = winLength, mode = mode)
         moveHistory.clear()
         savedThisGame = false
@@ -61,7 +68,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
     fun playAgain() {
         val g = game ?: return
-        startGame(g.boardSize, g.mode, opponent)
+        startGame(g.boardSize, g.mode, opponent, difficulty)
     }
 
     fun backToSetup() {
@@ -97,7 +104,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         if (g.status != GameStatus.InProgress || g.currentPlayer != aiPlayer) return
         isThinking = true
         viewModelScope.launch {
-            val move = withContext(Dispatchers.Default) { ai.chooseMove(g) }
+            val move = withContext(Dispatchers.Default) { ai.chooseMove(g, difficulty) }
             move?.let { g.makeMove(it.row, it.col); moveHistory.add(it) }
             isThinking = false
             refresh()
