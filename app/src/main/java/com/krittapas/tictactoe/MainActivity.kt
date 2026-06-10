@@ -41,7 +41,7 @@ class MainActivity : ComponentActivity() {
                                     HomeScreen(onStart = vm::goSetup, onHistory = vm::openHistory)
 
                                 GameViewModel.Screen.SETUP ->
-                                    SetupScreen(onStart = vm::startGame, onOpenHistory = vm::openHistory)
+                                    SetupScreen(onStart = vm::startGame, onHome = vm::goHome)
 
                                 GameViewModel.Screen.GAME -> vm.uiState?.let { state ->
                                     GameScreen(
