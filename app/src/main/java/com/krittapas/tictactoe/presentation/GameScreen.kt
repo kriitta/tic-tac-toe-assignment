@@ -79,30 +79,34 @@ fun GameScreen(
                 color = Color.White.copy(alpha = 0.9f),
             )
             Spacer(Modifier.height(8.dp))
-
             Box(
-                Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(26.dp))
-                    .background(Color.White.copy(alpha = 0.3f))
-                    .padding(10.dp)
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                contentAlignment = Alignment.Center,
             ) {
-                BoardGrid(
-                    boardSize = state.boardSize,
-                    board = state.board,
-                    winningCells = winningCells,
-                    doomedX = state.doomedX,
-                    doomedO = state.doomedO,
-                    enabled = !gameOver && !isThinking,
-                    onCellClick = onCellClick,
-                    xColor = BlueDeep,
-                    oColor = ORose,
-                    cellColor = Color.White,
-                    winColor = WinGold,
-                )
+                Box(
+                    Modifier
+                        .aspectRatio(1f)
+                        .clip(RoundedCornerShape(26.dp))
+                        .background(Color.White.copy(alpha = 0.3f))
+                        .padding(10.dp)
+                ) {
+                    BoardGrid(
+                        boardSize = state.boardSize,
+                        board = state.board,
+                        winningCells = winningCells,
+                        doomedX = state.doomedX,
+                        doomedO = state.doomedO,
+                        enabled = !gameOver && !isThinking,
+                        onCellClick = onCellClick,
+                        xColor = BlueDeep,
+                        oColor = ORose,
+                        cellColor = Color.White,
+                        winColor = WinGold,
+                    )
+                }
             }
 
-            Spacer(Modifier.weight(1f))
+            Spacer(Modifier.height(12.dp))
             QuitButton(onBack)
         }
 

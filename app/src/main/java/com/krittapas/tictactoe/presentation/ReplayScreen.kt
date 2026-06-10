@@ -107,26 +107,31 @@ fun ReplayScreen(
                 fontWeight = FontWeight.Bold, color = headlineColor)
             Spacer(Modifier.height(14.dp))
 
-            // กระดานในกรอบขาวโปร่ง
             Box(
-                Modifier.fillMaxWidth()
-                    .clip(RoundedCornerShape(26.dp))
-                    .background(Color.White.copy(alpha = 0.3f))
-                    .padding(10.dp)
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                contentAlignment = Alignment.Center,
             ) {
-                BoardGrid(
-                    boardSize = state.game.boardSize,
-                    board = state.board,
-                    winningCells = state.winningCells,
-                    enabled = false,
-                    xColor = BlueDeep,
-                    oColor = ORose,
-                    cellColor = Color.White,
-                    winColor = WinGold,
-                )
+                Box(
+                    Modifier
+                        .aspectRatio(1f)
+                        .clip(RoundedCornerShape(26.dp))
+                        .background(Color.White.copy(alpha = 0.3f))
+                        .padding(10.dp)
+                ) {
+                    BoardGrid(
+                        boardSize = state.game.boardSize,
+                        board = state.board,
+                        winningCells = state.winningCells,
+                        enabled = false,
+                        xColor = BlueDeep,
+                        oColor = ORose,
+                        cellColor = Color.White,
+                        winColor = WinGold,
+                    )
+                }
             }
 
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(16.dp))
             // แถบ progress
             Box(
                 Modifier.fillMaxWidth().height(8.dp)
@@ -161,8 +166,7 @@ fun ReplayScreen(
                     playing = false; onNext()
                 }
             }
-
-            Spacer(Modifier.weight(1f))
+            Spacer(Modifier.height(16.dp))
             BackButton(onBack)
         }
     }

@@ -65,7 +65,10 @@ fun SetupScreen(
             Spacer(Modifier.height(16.dp))
 
             // พรีวิวกระดาน + ลูกศรเลื่อนขนาด
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.widthIn(max = 380.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 ArrowButton(Icons.AutoMirrored.Filled.KeyboardArrowLeft, size > 3) { size-- }
                 BoardPreview(size, Modifier.weight(1f).aspectRatio(1f))
                 ArrowButton(Icons.AutoMirrored.Filled.KeyboardArrowRight, size < 10) { size++ }
