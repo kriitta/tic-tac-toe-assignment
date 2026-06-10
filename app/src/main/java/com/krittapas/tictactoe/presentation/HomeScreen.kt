@@ -8,16 +8,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import com.krittapas.tictactoe.ui.theme.NeonCyan
-import com.krittapas.tictactoe.ui.theme.NeonMagenta
-import com.krittapas.tictactoe.ui.theme.NeonTextDim
+
 
 @Composable
 fun HomeScreen(onStart: () -> Unit, onHistory: () -> Unit) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(32.dp),
+        modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
 
@@ -30,8 +27,10 @@ fun HomeScreen(onStart: () -> Unit, onHistory: () -> Unit) {
                 fontWeight = FontWeight.Bold, color = Color.White)
         }
         Spacer(Modifier.height(32.dp))
-        Text("TIC · TAC · TOE", style = MaterialTheme.typography.headlineSmall,
+        Text("TIC  ·  TAC  ·  TOE", style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+
+        Spacer(Modifier.height(6.dp))
         Text("Standard & Infinite modes", style = MaterialTheme.typography.bodyMedium,
             color = Color(0xFFFFFFFF)
         )
