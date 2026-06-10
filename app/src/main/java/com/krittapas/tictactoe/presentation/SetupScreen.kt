@@ -1,6 +1,5 @@
 package com.krittapas.tictactoe.presentation
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -9,9 +8,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.krittapas.tictactoe.domain.ai.Difficulty
 import com.krittapas.tictactoe.domain.game.GameMode
+import com.krittapas.tictactoe.ui.theme.NeonTextDim
 
 @Composable
 fun SetupScreen(
@@ -22,84 +23,87 @@ fun SetupScreen(
     var mode by remember { mutableStateOf(GameMode.STANDARD) }
     var opponent by remember { mutableStateOf(Opponent.HUMAN) }
     var difficulty by remember { mutableStateOf(Difficulty.NORMAL) }
-    val sizes = (3..10).toList()
+    var showDifficulty by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text("Tic-Tac-Toe", style = MaterialTheme.typography.headlineLarge)
+        Text("NEW GAME", style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
         Spacer(Modifier.height(24.dp))
 
-        Text("ขนาดกระดาน", style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.height(8.dp))
+        SectionLabel("BOARD SIZE")
+        Spacer(Modifier.height(10.dp))
         Row(
             modifier = Modifier.horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            sizes.forEach { s ->
-                if (s == size) Button(onClick = { size = s }) { Text("${s}×${s}") }
-                else OutlinedButton(onClick = { size = s }) { Text("${s}×${s}") }
-            }
+            (3..10).forEach { s -> ChoiceChip("${s}×${s}", s == size) { size = s } }
         }
 
-        Spacer(Modifier.height(20.dp))
-        Text("โหมดการเล่น", style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.height(8.dp))
-        ModeCard("Standard", "เติมกระดานได้เต็ม มีเสมอได้",
-            mode == GameMode.STANDARD) { mode = GameMode.STANDARD }
-        Spacer(Modifier.height(8.dp))
-        ModeCard("Infinite", "วางได้คนละ $size ตัว ตัวถัดไปแทนตัวเก่าสุด ไม่มีเสมอ",
-            mode == GameMode.INFINITE) { mode = GameMode.INFINITE }
-
-        Spacer(Modifier.height(20.dp))
-        Text("คู่ต่อสู้", style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(22.dp))
+        SectionLabel("MODE")
+        Spacer(Modifier.height(10.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (opponent == Opponent.HUMAN) Button(onClick = { opponent = Opponent.HUMAN }) { Text("เล่น 2 คน") }
-            else OutlinedButton(onClick = { opponent = Opponent.HUMAN }) { Text("เล่น 2 คน") }
-            if (opponent == Opponent.AI) Button(onClick = { opponent = Opponent.AI }) { Text("เล่นกับบอท") }
-            else OutlinedButton(onClick = { opponent = Opponent.AI }) { Text("เล่นกับบอท") }
+            ChoiceChip("Standard", mode == GameMode.STANDARD, Modifier.weight(1f)) { mode = GameMode.STANDARD }
+            ChoiceChip("Infinite", mode == GameMode.INFINITE, Modifier.weight(1f)) { mode = GameMode.INFINITE }
         }
+        Spacer(Modifier.height(6.dp))
+        Text(
+            if (mode == GameMode.INFINITE) "Oldest mark vanishes — no draws"
+            else "Fill the board — draws possible",
+            style = MaterialTheme.typography.bodySmall, color = NeonTextDim,
+        )
 
-        if (opponent == Opponent.AI) {
-            Spacer(Modifier.height(16.dp))
-            Text("ระดับความยาก", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Difficulty.entries.forEach { d ->
-                    val label = when (d) {
-                        Difficulty.EASY -> "Easy"
-                        Difficulty.NORMAL -> "Normal"
-                        Difficulty.HARD -> "Hard"
-                    }
-                    if (d == difficulty) Button(onClick = { difficulty = d }) { Text(label) }
-                    else OutlinedButton(onClick = { difficulty = d }) { Text(label) }
-                }
+        Spacer(Modifier.height(22.dp))
+        SectionLabel("OPPONENT")
+        Spacer(Modifier.height(10.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            ChoiceChip("2 Players", opponent == Opponent.HUMAN, Modifier.weight(1f)) {
+                opponent = Opponent.HUMAN
+            }
+            ChoiceChip("vs Bot", opponent == Opponent.AI, Modifier.weight(1f)) {
+                opponent = Opponent.AI
+                showDifficulty = true
             }
         }
-
-        Spacer(Modifier.height(28.dp))
-        Button(onClick = { onStart(size, mode, opponent, difficulty) }, modifier = Modifier.fillMaxWidth()) {
-            Text("เริ่มเกม")
+        if (opponent == Opponent.AI) {
+            Spacer(Modifier.height(8.dp))
+            Text("Difficulty: ${difficulty.name.lowercase().replaceFirstChar { it.uppercase() }}",
+                style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.secondary)
         }
+
+        Spacer(Modifier.height(32.dp))
+        GradientButton("PLAY", { onStart(size, mode, opponent, difficulty) }, Modifier.fillMaxWidth())
         Spacer(Modifier.height(12.dp))
-        TextButton(onClick = onOpenHistory) { Text("ดูประวัติการเล่น") }
+        TextButton(onClick = onOpenHistory) { Text("History") }
     }
-}
 
-@Composable
-private fun ModeCard(title: String, desc: String, selected: Boolean, onClick: () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth().clickable { onClick() },
-        colors = CardDefaults.cardColors(
-            containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer
-            else MaterialTheme.colorScheme.surfaceVariant,
-        ),
-    ) {
-        Column(Modifier.padding(16.dp)) {
-            Text(title, style = MaterialTheme.typography.titleMedium)
-            Text(desc, style = MaterialTheme.typography.bodySmall)
-        }
+    if (showDifficulty) {
+        AlertDialog(
+            onDismissRequest = { showDifficulty = false },
+            confirmButton = {},
+            dismissButton = { TextButton(onClick = { showDifficulty = false }) { Text("Cancel") } },
+            title = { Text("Select Difficulty") },
+            text = {
+                Column {
+                    Difficulty.entries.forEach { d ->
+                        val label = when (d) {
+                            Difficulty.EASY -> "Easy"
+                            Difficulty.NORMAL -> "Normal"
+                            Difficulty.HARD -> "Hard"
+                        }
+                        TextButton(
+                            onClick = { difficulty = d; opponent = Opponent.AI; showDifficulty = false },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(label, color = if (d == difficulty) MaterialTheme.colorScheme.secondary
+                            else MaterialTheme.colorScheme.onSurface)
+                        }
+                    }
+                }
+            },
+        )
     }
 }

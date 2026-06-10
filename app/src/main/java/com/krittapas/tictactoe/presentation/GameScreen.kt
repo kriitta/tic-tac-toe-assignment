@@ -1,17 +1,20 @@
 package com.krittapas.tictactoe.presentation
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.krittapas.tictactoe.domain.game.Cell
 import com.krittapas.tictactoe.domain.game.GameStatus
 import com.krittapas.tictactoe.domain.game.Player
 
@@ -26,71 +29,81 @@ fun GameScreen(
     val winningCells = (state.status as? GameStatus.Won)?.winningLine?.toSet() ?: emptySet()
     val gameOver = state.status !is GameStatus.InProgress
 
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        val statusText = when (val s = state.status) {
-            is GameStatus.Won -> "ผู้ชนะ: ${s.winner}"
-            GameStatus.Draw -> "เสมอ!"
-            GameStatus.InProgress -> "ตาของ: ${state.currentPlayer}"
-        }
-        Text(statusText, style = MaterialTheme.typography.headlineSmall)
-        if (isThinking) Text("บอทกำลังคิด...", style = MaterialTheme.typography.bodyMedium)
-        Spacer(Modifier.height(16.dp))
-
-        // กระดาน N×N
-        Column(Modifier.fillMaxWidth()) {
-            for (r in 0 until state.boardSize) {
-                Row(Modifier.fillMaxWidth()) {
-                    for (c in 0 until state.boardSize) {
-                        CellView(
-                            player = state.board[r][c],
-                            isWinning = Cell(r, c) in winningCells,
-                            fade = Cell(r, c) == state.cellToRemove,
-                            enabled = !gameOver && !isThinking && state.board[r][c] == null,
-                            onClick = { onCellClick(r, c) },
-                            modifier = Modifier.weight(1f).aspectRatio(1f).padding(2.dp),
-                        )
-                    }
-                }
+    Box(Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            val turn = when {
+                isThinking -> "Bot is thinking…"
+                else -> "Turn: ${state.currentPlayer}"
             }
+            val turnColor = if (state.currentPlayer == Player.X)
+                MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.tertiary
+            Text(turn, style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold, color = turnColor)
+            Spacer(Modifier.height(20.dp))
+
+            BoardGrid(
+                boardSize = state.boardSize,
+                board = state.board,
+                winningCells = winningCells,
+                doomedX = state.doomedX,
+                doomedO = state.doomedO,
+                enabled = !gameOver && !isThinking,
+                onCellClick = onCellClick,
+            )
+
+            Spacer(Modifier.height(28.dp))
+            TextButton(onClick = onBack) { Text("Quit to Menu") }
         }
 
-        Spacer(Modifier.height(24.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            OutlinedButton(onClick = onBack) { Text("ตั้งค่าใหม่") }
-            Button(onClick = onPlayAgain) { Text("เล่นอีกครั้ง") }
-        }
+        if (gameOver) WinOverlay(state.status, onPlayAgain, onBack)
     }
 }
 
 @Composable
-private fun CellView(
-    player: Player?,
-    isWinning: Boolean,
-    fade: Boolean,
-    enabled: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val bg = if (isWinning) MaterialTheme.colorScheme.primaryContainer
-    else MaterialTheme.colorScheme.surfaceVariant
+private fun WinOverlay(status: GameStatus, onPlayAgain: () -> Unit, onBack: () -> Unit) {
+    var shown by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { shown = true }
+    val scale by animateFloatAsState(
+        targetValue = if (shown) 1f else 0.5f,
+        animationSpec = tween(450, easing = FastOutSlowInEasing), label = "scale",
+    )
+
+    val xColor = MaterialTheme.colorScheme.secondary
+    val oColor = MaterialTheme.colorScheme.tertiary
+    val title: String
+    val titleColor: Color
+    when (status) {
+        is GameStatus.Won -> {
+            title = "${status.winner} WINS!"
+            titleColor = if (status.winner == Player.X) xColor else oColor
+        }
+        GameStatus.Draw -> { title = "DRAW!"; titleColor = MaterialTheme.colorScheme.onSurface }
+        GameStatus.InProgress -> { title = ""; titleColor = Color.White }
+    }
+
     Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(6.dp))
-            .background(bg)
-            .clickable(enabled = enabled, onClick = onClick),
+        Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.75f)),
         contentAlignment = Alignment.Center,
     ) {
-        if (player != null) {
-            Text(
-                text = player.name,
-                style = MaterialTheme.typography.titleLarge,
-                color = if (player == Player.X) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.tertiary,
-                modifier = Modifier.alpha(if (fade) 0.3f else 1f),
-            )
+        Column(
+            modifier = Modifier
+                .scale(scale)
+                .clip(RoundedCornerShape(28.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(36.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text("🎉", style = MaterialTheme.typography.displayMedium)
+            Spacer(Modifier.height(8.dp))
+            Text(title, style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Black, color = titleColor)
+            Spacer(Modifier.height(28.dp))
+            GradientButton("Play Again", onPlayAgain, Modifier.fillMaxWidth(0.8f))
+            Spacer(Modifier.height(10.dp))
+            TextButton(onClick = onBack) { Text("Main Menu") }
         }
     }
 }

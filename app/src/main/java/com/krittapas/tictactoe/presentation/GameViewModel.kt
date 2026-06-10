@@ -10,21 +10,20 @@ import com.krittapas.tictactoe.data.AppDatabase
 import com.krittapas.tictactoe.data.GameRepository
 import com.krittapas.tictactoe.data.SavedGame
 import com.krittapas.tictactoe.domain.ai.AiPlayer
+import com.krittapas.tictactoe.domain.ai.Difficulty
 import com.krittapas.tictactoe.domain.game.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.krittapas.tictactoe.domain.ai.Difficulty
 
 class GameViewModel(app: Application) : AndroidViewModel(app) {
 
-    enum class Screen { SETUP, GAME, HISTORY, REPLAY }
+    enum class Screen { HOME, SETUP, GAME, HISTORY, REPLAY }
 
     private val repository = GameRepository(AppDatabase.getInstance(app).gameDao())
 
-    var screen by mutableStateOf(Screen.SETUP); private set
+    var screen by mutableStateOf(Screen.HOME); private set
 
-    // ----- เล่นเกม -----
     private var game: TicTacToeGame? = null
     private var opponent = Opponent.HUMAN
     private var difficulty = Difficulty.NORMAL
@@ -35,10 +34,20 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
     var uiState by mutableStateOf<GameUiState?>(null); private set
     var isThinking by mutableStateOf(false); private set
-
-    // ----- ประวัติ + replay -----
     var history by mutableStateOf<List<SavedGame>>(emptyList()); private set
     var replayState by mutableStateOf<ReplayState?>(null); private set
+
+    fun goHome() {
+        game = null; uiState = null; isThinking = false; replayState = null
+        screen = Screen.HOME
+    }
+
+    fun goSetup() { screen = Screen.SETUP }
+
+    fun backToSetup() {
+        game = null; uiState = null; isThinking = false
+        screen = Screen.SETUP
+    }
 
     fun startGame(boardSize: Int, mode: GameMode, opponent: Opponent, difficulty: Difficulty) {
         this.opponent = opponent
@@ -69,11 +78,6 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     fun playAgain() {
         val g = game ?: return
         startGame(g.boardSize, g.mode, opponent, difficulty)
-    }
-
-    fun backToSetup() {
-        game = null; uiState = null; isThinking = false; replayState = null
-        screen = Screen.SETUP
     }
 
     fun openHistory() {
@@ -127,15 +131,14 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    /** สร้างสถานะกระดานของ replay โดยเล่น moves ซ้ำ step ตาแรกผ่าน engine จริง */
     private fun buildReplay(saved: SavedGame, step: Int): ReplayState {
         val g = TicTacToeGame(saved.boardSize, saved.winLength, saved.mode)
         for (i in 0 until step) g.makeMove(saved.moves[i].row, saved.moves[i].col)
         val board = List(g.boardSize) { r -> List(g.boardSize) { c -> g.cellAt(r, c) } }
         val statusText = when (val s = g.status) {
-            is GameStatus.Won -> "ผู้ชนะ: ${s.winner}"
-            GameStatus.Draw -> "เสมอ!"
-            GameStatus.InProgress -> "ตา $step / ${saved.moves.size}"
+            is GameStatus.Won -> "${s.winner} wins"
+            GameStatus.Draw -> "Draw"
+            GameStatus.InProgress -> "Move $step / ${saved.moves.size}"
         }
         return ReplayState(saved, step, board, statusText)
     }
@@ -146,7 +149,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         uiState = GameUiState(
             boardSize = g.boardSize, mode = g.mode, board = board,
             currentPlayer = g.currentPlayer, status = g.status,
-            cellToRemove = g.cellToBeRemovedFor(g.currentPlayer),
+            doomedX = g.cellToBeRemovedFor(Player.X),
+            doomedO = g.cellToBeRemovedFor(Player.O),
         )
     }
 }

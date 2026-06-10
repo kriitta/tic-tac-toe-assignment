@@ -11,5 +11,6 @@ data class GameUiState(
     val board: List<List<Player?>>,
     val currentPlayer: Player,
     val status: GameStatus,
-    val cellToRemove: Cell?,   // ช่องที่จะหายในตาถัดไป (โหมด Infinite)
+    val doomedX: Cell?,   // หมากของ X ที่จะหายเมื่อ X ลงตาต่อไป
+    val doomedO: Cell?,   // หมากของ O ที่จะหาย
 )
