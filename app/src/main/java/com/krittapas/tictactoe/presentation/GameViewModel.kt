@@ -151,6 +151,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             currentPlayer = g.currentPlayer, status = g.status,
             doomedX = g.cellToBeRemovedFor(Player.X),
             doomedO = g.cellToBeRemovedFor(Player.O),
+            opponent = opponent,
+            difficulty = difficulty,
         )
     }
 }

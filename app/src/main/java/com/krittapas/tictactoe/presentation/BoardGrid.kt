@@ -29,9 +29,11 @@ fun BoardGrid(
     enabled: Boolean = false,
     onCellClick: (Int, Int) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier,
+    xColor: Color = MaterialTheme.colorScheme.secondary,
+    oColor: Color = MaterialTheme.colorScheme.tertiary,
+    cellColor: Color = MaterialTheme.colorScheme.surfaceVariant,
+    winColor: Color = MaterialTheme.colorScheme.primary,
 ) {
-    val xColor = MaterialTheme.colorScheme.secondary
-    val oColor = MaterialTheme.colorScheme.tertiary
     val transition = rememberInfiniteTransition(label = "pulse")
     val pulse by transition.animateFloat(
         initialValue = 0.35f, targetValue = 1f,
@@ -54,6 +56,7 @@ fun BoardGrid(
                         doomColor = doomColor,
                         pulse = pulse,
                         xColor = xColor, oColor = oColor,
+                        cellColor = cellColor, winColor = winColor,
                         enabled = enabled && board[r][c] == null,
                         onClick = { onCellClick(r, c) },
                         modifier = Modifier.weight(1f).aspectRatio(1f).padding(3.dp),
@@ -67,12 +70,11 @@ fun BoardGrid(
 @Composable
 private fun BoardCell(
     player: Player?, isWinning: Boolean, doomColor: Color?, pulse: Float,
-    xColor: Color, oColor: Color, enabled: Boolean, onClick: () -> Unit,
+    xColor: Color, oColor: Color, cellColor: Color, winColor: Color,
+    enabled: Boolean, onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val baseBg = MaterialTheme.colorScheme.surfaceVariant
-    val winColor = MaterialTheme.colorScheme.primary
-    val bg = if (isWinning) winColor.copy(alpha = pulse) else baseBg
+    val bg = if (isWinning) winColor.copy(alpha = pulse) else cellColor
 
     Box(
         modifier = modifier

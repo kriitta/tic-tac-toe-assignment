@@ -1,5 +1,6 @@
 package com.krittapas.tictactoe.presentation
 
+import com.krittapas.tictactoe.domain.ai.Difficulty
 import com.krittapas.tictactoe.domain.game.Cell
 import com.krittapas.tictactoe.domain.game.GameMode
 import com.krittapas.tictactoe.domain.game.GameStatus
@@ -11,6 +12,8 @@ data class GameUiState(
     val board: List<List<Player?>>,
     val currentPlayer: Player,
     val status: GameStatus,
-    val doomedX: Cell?,   // หมากของ X ที่จะหายเมื่อ X ลงตาต่อไป
-    val doomedO: Cell?,   // หมากของ O ที่จะหาย
+    val doomedX: Cell?,
+    val doomedO: Cell?,
+    val opponent: Opponent,
+    val difficulty: Difficulty,
 )
