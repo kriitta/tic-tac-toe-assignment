@@ -62,7 +62,13 @@ class MainActivity : ComponentActivity() {
                                     )
 
                                 GameViewModel.Screen.REPLAY -> vm.replayState?.let { rs ->
-                                    ReplayScreen(state = rs, onNext = vm::replayNext, onPrev = vm::replayPrev, onBack = vm::openHistory)
+                                    ReplayScreen(
+                                        state = rs,
+                                        onNext = vm::replayNext,
+                                        onPrev = vm::replayPrev,
+                                        onRestart = vm::replayRestart,
+                                        onBack = vm::openHistory,
+                                    )
                                 }
                             }
                         }

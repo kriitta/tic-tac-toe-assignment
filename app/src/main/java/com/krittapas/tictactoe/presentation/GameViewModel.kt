@@ -105,6 +105,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         if (rs.step < rs.game.moves.size) replayState = buildReplay(rs.game, rs.step + 1)
     }
 
+    fun replayRestart() {
+        val rs = replayState ?: return
+        replayState = buildReplay(rs.game, 0)
+    }
+
     fun replayPrev() {
         val rs = replayState ?: return
         if (rs.step > 0) replayState = buildReplay(rs.game, rs.step - 1)
@@ -143,12 +148,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         val g = TicTacToeGame(saved.boardSize, saved.winLength, saved.mode)
         for (i in 0 until step) g.makeMove(saved.moves[i].row, saved.moves[i].col)
         val board = List(g.boardSize) { r -> List(g.boardSize) { c -> g.cellAt(r, c) } }
-        val statusText = when (val s = g.status) {
-            is GameStatus.Won -> "${s.winner} wins"
-            GameStatus.Draw -> "Draw"
-            GameStatus.InProgress -> "Move $step / ${saved.moves.size}"
-        }
-        return ReplayState(saved, step, board, statusText)
+        val winning = (g.status as? GameStatus.Won)?.winningLine?.toSet() ?: emptySet()
+        return ReplayState(saved, step, board, winning)
     }
 
     private fun refresh() {
@@ -169,5 +170,5 @@ data class ReplayState(
     val game: SavedGame,
     val step: Int,
     val board: List<List<Player?>>,
-    val statusText: String,
+    val winningCells: Set<Cell>,
 )
