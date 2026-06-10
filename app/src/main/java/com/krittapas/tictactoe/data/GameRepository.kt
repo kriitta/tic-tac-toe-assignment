@@ -24,6 +24,8 @@ class GameRepository(private val dao: GameDao) {
 
     suspend fun getAll(): List<SavedGame> = dao.getAll().map { it.toSavedGame() }
 
+    suspend fun clearAll() = dao.clearAll()
+
     private fun GameRecordEntity.toSavedGame() = SavedGame(
         id = id, playedAt = playedAt, boardSize = boardSize, winLength = winLength,
         mode = GameMode.valueOf(mode), opponent = opponent, result = result,

@@ -54,7 +54,12 @@ class MainActivity : ComponentActivity() {
                                 }
 
                                 GameViewModel.Screen.HISTORY ->
-                                    HistoryScreen(games = vm.history, onReplay = vm::startReplay, onBack = vm::backToSetup)
+                                    HistoryScreen(
+                                        games = vm.history,
+                                        onReplay = vm::startReplay,
+                                        onClear = vm::clearHistory,
+                                        onBack = vm::goHome,
+                                    )
 
                                 GameViewModel.Screen.REPLAY -> vm.replayState?.let { rs ->
                                     ReplayScreen(state = rs, onNext = vm::replayNext, onPrev = vm::replayPrev, onBack = vm::openHistory)

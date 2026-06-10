@@ -87,6 +87,14 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    fun clearHistory() {
+        viewModelScope.launch {
+            repository.clearAll()
+            history = repository.getAll()   // โหลดใหม่ จะว่างแล้ว
+        }
+    }
+
+
     fun startReplay(saved: SavedGame) {
         replayState = buildReplay(saved, 0)
         screen = Screen.REPLAY

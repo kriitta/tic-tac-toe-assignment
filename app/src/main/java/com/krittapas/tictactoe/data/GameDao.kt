@@ -14,4 +14,7 @@ interface GameDao {
 
     @Query("SELECT * FROM game_records WHERE id = :id")
     suspend fun getById(id: Long): GameRecordEntity?
+
+    @Query("DELETE FROM game_records")
+    suspend fun clearAll()
 }
