@@ -3,7 +3,9 @@ package com.krittapas.tictactoe.presentation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -15,7 +17,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.krittapas.tictactoe.ui.theme.*
+import com.krittapas.tictactoe.ui.theme.NeonCyan
+import com.krittapas.tictactoe.ui.theme.NeonPurple
+import com.krittapas.tictactoe.ui.theme.NeonSurface2
+import com.krittapas.tictactoe.ui.theme.NeonTextDim
 
 @Composable
 fun GameBackground(content: @Composable () -> Unit) {

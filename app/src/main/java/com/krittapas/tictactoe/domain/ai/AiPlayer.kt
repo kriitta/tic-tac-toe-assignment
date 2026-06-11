@@ -1,6 +1,9 @@
 package com.krittapas.tictactoe.domain.ai
 
-import com.krittapas.tictactoe.domain.game.*
+import com.krittapas.tictactoe.domain.game.Cell
+import com.krittapas.tictactoe.domain.game.GameStatus
+import com.krittapas.tictactoe.domain.game.Player
+import com.krittapas.tictactoe.domain.game.TicTacToeGame
 
 class AiPlayer {
 
