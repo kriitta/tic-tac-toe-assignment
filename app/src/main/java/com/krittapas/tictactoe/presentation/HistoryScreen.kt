@@ -44,8 +44,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-private val BlueTop = Color(0xFF7FA6F3)
-private val BlueBottom = Color(0xFF3B62D8)
 private val BlueDeep = Color(0xFF2B57C9)
 private val ORose = Color(0xFFE85C8A)
 private val DrawGray = Color(0xFF8A93B2)

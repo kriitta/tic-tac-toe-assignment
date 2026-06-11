@@ -17,11 +17,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.krittapas.tictactoe.ui.theme.NeonCyan
-import com.krittapas.tictactoe.ui.theme.NeonPurple
-import com.krittapas.tictactoe.ui.theme.NeonSurface2
-import com.krittapas.tictactoe.ui.theme.NeonTextDim
-
 @Composable
 fun GameBackground(content: @Composable () -> Unit) {
     Box(
@@ -44,30 +39,6 @@ fun GradientButton(text: String, onClick: () -> Unit, modifier: Modifier = Modif
         Text(text, color = Color(0xFF1F5FD0), fontWeight = FontWeight.Bold,
             style = MaterialTheme.typography.titleMedium)
     }
-}
-
-@Composable
-fun ChoiceChip(label: String, selected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    val bg = if (selected) Brush.horizontalGradient(listOf(NeonCyan, NeonPurple))
-    else Brush.horizontalGradient(listOf(NeonSurface2, NeonSurface2))
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(14.dp))
-            .background(bg)
-            .clickable { onClick() }
-            .padding(horizontal = 18.dp, vertical = 12.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(label, color = if (selected) Color.White else NeonTextDim,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-            style = MaterialTheme.typography.bodyLarge)
-    }
-}
-
-@Composable
-fun SectionLabel(text: String) {
-    Text(text, color = NeonTextDim, fontWeight = FontWeight.SemiBold,
-        style = MaterialTheme.typography.titleSmall)
 }
 
 @Composable
